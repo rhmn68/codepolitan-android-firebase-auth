@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        android:elevation="0dp">
+        app:elevation="0dp">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/tbSignIn"
