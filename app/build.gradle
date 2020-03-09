@@ -42,4 +42,7 @@ dependencies {
     //FirebaseAuth
     implementation 'com.google.firebase:firebase-auth:19.2.0'
     implementation 'com.google.android.gms:play-services-auth:17.0.0'
+
+    //Facebook
+    implementation 'com.facebook.android:facebook-android-sdk:4.42.0'
 }

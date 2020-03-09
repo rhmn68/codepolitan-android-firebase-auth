@@ -5,14 +5,16 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Patterns
 import android.widget.Toast
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.AuthCredential
-import com.google.firebase.auth.EmailAuthProvider
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.*
 import kotlinx.android.synthetic.main.activity_sign_in.*
 import kotlin.math.sign
 
@@ -20,6 +22,7 @@ class SignInActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var mGoogleSignInClient: GoogleSignInClient
+    private lateinit var callBackManager: CallbackManager
 
     companion object{
         const val RC_SIGN_IN = 100
@@ -53,10 +56,37 @@ class SignInActivity : AppCompatActivity() {
             val signIntent = mGoogleSignInClient.signInIntent
             startActivityForResult(signIntent, RC_SIGN_IN)
         }
+
+        btnFacebookSignIn.setOnClickListener {
+            loginFacebook()
+        }
+    }
+
+    private fun loginFacebook() {
+        LoginManager.getInstance().logInWithReadPermissions(this, listOf("email"))
+        LoginManager.getInstance().registerCallback(callBackManager,
+            object : FacebookCallback<LoginResult>{
+                override fun onSuccess(result: LoginResult?) {
+                    CustomDialog.showLoading(this@SignInActivity)
+                    val credential = FacebookAuthProvider.getCredential(result?.accessToken?.token.toString())
+
+                    fireBaseAuth(credential)
+                }
+
+                override fun onCancel() {
+                }
+
+                override fun onError(error: FacebookException?) {
+                    Toast.makeText(this@SignInActivity, error?.message, Toast.LENGTH_SHORT).show()
+                }
+
+            })
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        // Pass the activity result back to the Facebook SDK
+        callBackManager.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == RC_SIGN_IN){
             CustomDialog.showLoading(this)
@@ -104,6 +134,8 @@ class SignInActivity : AppCompatActivity() {
             .build()
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
+
+        callBackManager = CallbackManager.Factory.create()
     }
 
     private fun checkValidation(email: String, pass: String): Boolean {
